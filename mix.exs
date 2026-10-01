@@ -4,7 +4,7 @@ defmodule Rivet.Engram.MixProject do
   def project do
     [
       app: :rivet_engram,
-      version: "1.0.0",
+      version: "2.0.0",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       description: "Multi-section templates with EEX and YML support",

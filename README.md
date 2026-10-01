@@ -50,7 +50,7 @@ Supported section types are:
 * `eex-yml-docs` — evaluated as EEx, then parsed as multiple YAML documents.
 * `eex` — evaluated as EEx without YAML parsing.
 
-## Example
+### Example \#1
 
 ```
 === rivet-engram-v1
@@ -75,6 +75,72 @@ A few things are happening here:
 * `embed_assign` becomes part of the assigns available to EEx sections.
 * the green section demonstrates multi-doc YAML inside an Engram section.
 * cross-section assigns: The `blue` section references the previously processed `red` section.
+
+### Example \#2
+
+This is a (trimmed) real-world template used by Rivet.Mailer in sending an announcement.
+
+```
+=== rivet-engram-v1
+sections:
+  subject: eex
+  body: eex
+=== subject
+From the <%= @book.world_of %>: <%= @book.title %>
+=== body
+<%= @recip.hello %>,
+
+<p>
+I’m excited to share that my next book in the series, <b><%= @book.title %></b>, is now available for pre-order where books are sold.
+<p>
+<blockquote>
+<%= for {quote, from} <- @book.quotes %>
+<p>“<%= quote %>” - <i><%= from %></p>
+</blockquote>
+
+```
+
+The assigns sent into this template includes a list of user subscriptions and other metadata like @recip.hello. The output is a fully formatted/personalized content, in an Engram struct:
+
+```elixir
+%Engram{
+  sections: %{
+    subject: "From the world of Atom Bomb Baby: God's Gonna Cut You Down",
+    body: "Hello Adam,\n\n<p>I’m excited to share that my next book in the series, <b>God's Gonna Cut You Down</b>, is now available for pre-order where books are sold.<p>....",
+  },
+  diags: %{
+    subject: [],
+    body: [%{display: "some warning that popped but didn't error", ..}]
+  }
+}
+```
+
+### Example \#3
+
+This is used in a server management system where templates are defined for server product SKUS, with static information defined, separate from DB inserted assigns, later then used to generate a JSON output file that is stored elsewhere. This template looks somewhat like (shortening for brevity):
+
+```
+=== rivet-engram-v1
+sections:
+  product: eex-yml
+  driver: eex
+=== product  
+sku: FC2C
+layout:
+  1: 2x3
+  9: 2x3
+  28: 4x2
+switch:
+  pod_id: <%= @pod.id %>
+[...]
+=== driver
+<%=
+  # additional code here to flesh out more of the json struct around product.
+  product = @sections.product |> [...]
+
+  Jason.encode!(product)
+%>
+```
 
 ## Usage
 
