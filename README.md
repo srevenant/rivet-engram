@@ -6,8 +6,7 @@ It is a standalone implementation from the original Rivet.Template format.
 
 An Engram is a pattern or template that is realized through processing. Each document contains metadata followed by one or more named sections, which may contain YAML, EEx, or EEx-generated YAML.
 
-Engrams are currently used by Dragon (an EEx CMS) and Rivet.Mailer (templated
-batching/sending of emails).
+Engrams are currently used by Dragon (an EEx CMS) and Rivet.Mailer (templated batching/sending of emails).
 
 ## Warning
 
@@ -84,8 +83,7 @@ A few things are happening here:
 The simplest usage is:
 
 ```elixir
-{:ok, %Rivet.Engram{} = engram} =
-  Rivet.Engram.process_string("...")
+{:ok, %Rivet.Engram{} = engram} = Rivet.Engram.process_string("...")
 ```
 
 The resulting struct contains:
@@ -93,7 +91,7 @@ The resulting struct contains:
 * `sections` — the processed result of each requested section.
 * `diags` — diagnostic information collected while evaluating sections.
 
-For normal use, prefer:
+Most use cases can simply use:
 
 ```elixir
 Rivet.Engram.process_file/2
@@ -109,9 +107,7 @@ Rivet.Engram.parse_string/2
 
 ## Nuanced behavior
 
-Section structure is not currently enforced beyond the basic metadata requirements, so malformed or inconsistent Engrams may produce unexpected results.
-
-Notably:
+Section structure is not currently enforced beyond the basic metadata requirements, so malformed or inconsistent Engrams may produce unexpected results. Notably:
 
 * Undeclared sections are silently skipped.
 * Declared-but-missing sections are not detected.
