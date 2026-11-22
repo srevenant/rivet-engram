@@ -19,6 +19,7 @@ defmodule Rivet.Engram do
   @type engram_diagnostic ::
           %{section: String.t(), display: String.t(), diag: map()}
           | %{section: String.t(), display: String.t(), trace: list() | nil, error: term()}
+  @type engram_diagnostics :: list(engram_diagnostic())
 
   @type t :: %__MODULE__{
           sections: %{section_name() => term()},
@@ -27,7 +28,7 @@ defmodule Rivet.Engram do
           assigns: map(),
           file: Path.t(),
           imports: [String.t()],
-          diags: %{section_name() => [engram_diagnostic()]},
+          diags: %{section_name() => engram_diagnostics()},
           opts: map()
         }
 

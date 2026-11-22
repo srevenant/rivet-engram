@@ -3,10 +3,10 @@ defmodule Rivet.Engram.Evaluate do
   alias Rivet.Engram
 
   @type result ::
-          {:ok, term(), [Engram.engram_diagnostic()]}
-          | {:error, nil, [Engram.engram_diagnostic()]}
+          {:ok, term(), Engram.engram_diagnostics()}
+          | {:error, term(), Engram.engram_diagnostics()}
 
-  @spec sections(Engram.t()) :: {:ok, Engram.t()} | result()
+  @spec sections(Engram.t()) :: {:ok, Engram.t()} | {:error, term(), Engram.engram_diagnostics()}
   def sections(%Engram{deferred: []} = en), do: {:ok, en}
   def sections(%Engram{deferred: deferred} = en), do: eval_sections_(en, deferred)
 
