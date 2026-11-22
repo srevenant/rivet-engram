@@ -12,7 +12,7 @@ defmodule Rivet.Engram.Evaluate do
 
   ##############################################################################
   defp eval_sections_(%Engram{} = en, [{label, data, offset} | rest]) do
-    with {:ok, result, diags} <- eval_section(data, en, offset) do
+    with {:ok, result, diags} <- eval_section(label, data, en, offset) do
       yaml_method =
         case en.index[label] do
           "eex-yml" -> :read_from_string
@@ -36,21 +36,21 @@ defmodule Rivet.Engram.Evaluate do
     do: %{en | sections: Map.put(en.sections, key, result), diags: Map.put(en.diags, key, diags)}
 
   ##############################################################################
-  @spec eval_section(iodata(), Engram.t(), pos_integer()) :: result()
-  defp eval_section(iolist_data, %Engram{} = en, offset) when is_list(iolist_data),
-    do: Enum.join(iolist_data) |> eval_section(en, offset)
+  @spec eval_section(String.t(), iodata(), Engram.t(), pos_integer()) :: result()
+  defp eval_section(section, iolist_data, %Engram{} = en, offset) when is_list(iolist_data),
+    do: eval_section(section, Enum.join(iolist_data), en, offset)
 
-  defp eval_section(data, %Engram{} = en, offset) do
+  defp eval_section(section, data, %Engram{} = en, offset) do
     # merging sections into assigns here means order matters
     bindings = [assigns: Map.put(en.assigns, :sections, en.sections)]
 
     case eval_with_diag(data, bindings, en.imports, en.file, offset) do
       {{:ok, evaluated}, diags} ->
         status = if diag_error?(diags), do: :error, else: :ok
-        {status, evaluated, Enum.map(diags, &format_diag/1)}
+        {status, evaluated, Enum.map(diags, &format_diag(section, &1))}
 
       {{:error, error, trace}, diags} ->
-        {:error, nil, simplify_diags(diags, error, trace)}
+        {:error, nil, simplify_diags(section, diags, error, trace)}
     end
   end
 
@@ -102,33 +102,36 @@ defmodule Rivet.Engram.Evaluate do
 
   ##############################################################################
   # a lot of gymnastics from here on down to make useful errors for humans
-  defp simplify_diags([], error, trace), do: [format_error(error, trace)]
+  defp simplify_diags(section, [], error, trace), do: [format_error(section, error, trace)]
 
-  defp simplify_diags(diags, error, trace) do
-    messages = Enum.map(diags, &format_diag/1)
+  defp simplify_diags(section, diags, error, trace) do
+    messages = Enum.map(diags, &format_diag(section, &1))
 
     # If diagnostics contain an actual compiler error, that should already
     # describe the exception. Otherwise retain the runtime exception too.
     if diag_error?(diags) do
       messages
     else
-      messages ++ [format_error(error, trace)]
+      messages ++ [format_error(section, error, trace)]
     end
   end
 
   ##############################################################################
-  defp format_diag(%{message: message, position: {line, _}} = d),
-    do: %{display: "Line #{line}: #{message}", diag: d}
+  defp format_diag(section, %{message, position: {position, _}} = d),
+    do: %{section, display: "Line #{position}: #{message}", diag: d}
 
   # coveralls-ignore-start
-  defp format_diag(%{message: message, position: line} = d) when is_integer(line) and line > 0,
-    do: %{display: "Line #{line}: #{message}", diag: d}
+  defp format_diag(section, %{message, position} = d) when is_integer(position) and position > 0,
+    do: %{section, display: "Line #{position}: #{message}", diag: d}
 
-  defp format_diag(%{message: message, position: 0} = d), do: %{display: message, diag: d}
+  defp format_diag(section, %{message: display, position: 0} = diag),
+    do: %{section, display, diag}
+
   # coveralls-ignore-stop
 
   ##############################################################################
-  defp format_error(err, tr), do: %{display: format_display_error(err, tr), trace: tr, error: err}
+  defp format_error(section, error, trace),
+    do: %{section, error, trace, display: format_display_error(error, trace)}
 
   # inner engram workings error; no line number
   defp format_display_error(error, nil) when is_binary(error), do: error

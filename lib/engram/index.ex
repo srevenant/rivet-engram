@@ -2,10 +2,6 @@ defmodule Rivet.Engram do
   @moduledoc """
   Parses and evaluates Rivet Engram documents.
 
-  Engrams contain named sections which may contain YAML, EEx, or EEx-generated
-  YAML. Sections are evaluated in document order and may reference previously
-  evaluated sections.
-
   Use `process_file/2` or `process_string/2` for normal use. The `parse_*`
   functions perform only the initial parsing pass, while `evaluate/1` evaluates
   deferred EEx sections.
@@ -21,8 +17,8 @@ defmodule Rivet.Engram do
   @type engram_metadata :: map()
   @type line_number :: pos_integer()
   @type engram_diagnostic ::
-          %{display: String.t(), diag: map()}
-          | %{display: String.t(), trace: list() | nil, error: term()}
+          %{section: String.t(), display: String.t(), diag: map()}
+          | %{section: String.t(), display: String.t(), trace: list() | nil, error: term()}
 
   @type t :: %__MODULE__{
           sections: %{section_name() => term()},

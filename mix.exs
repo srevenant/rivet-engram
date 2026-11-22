@@ -4,6 +4,7 @@ defmodule Rivet.Engram.MixProject do
   def project do
     [
       app: :rivet_engram,
+      compilers: [:es6_maps | Mix.compilers()],
       version: "2.0.0",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -41,6 +42,7 @@ defmodule Rivet.Engram.MixProject do
     [
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:es6_maps, "~> 1.0.2"},
       {:excoveralls, "~> 0.14", only: :test},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.0", only: [:test, :dev], runtime: false},
