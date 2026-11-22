@@ -6,7 +6,7 @@ defmodule Rivet.Engram.Evaluate do
           {:ok, term(), [Engram.engram_diagnostic()]}
           | {:error, nil, [Engram.engram_diagnostic()]}
 
-  @spec sections(Engram.t()) :: {:ok, Engram.t()} | {:error, term()}
+  @spec sections(Engram.t()) :: {:ok, Engram.t()} | result()
   def sections(%Engram{deferred: []} = en), do: {:ok, en}
   def sections(%Engram{deferred: deferred} = en), do: eval_sections_(en, deferred)
 

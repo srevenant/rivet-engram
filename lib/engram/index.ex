@@ -49,7 +49,7 @@ defmodule Rivet.Engram do
     with {:ok, %Engram{} = t} <- parse_file(path, opts), do: evaluate(t)
   end
 
-  @spec parse_string(String.t(), keyword()) :: {:ok, t()} | {:error, term()}
+  @spec parse_string(String.t(), keyword()) :: {:ok, t()} | {:error, term(), term()}
   def parse_string(string, opts \\ []),
     do: Engram.Read.from_string(string) |> Engram.Parse.parse("nofile", opts)
 
