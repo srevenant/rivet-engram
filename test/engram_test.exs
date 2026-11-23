@@ -96,6 +96,16 @@ defmodule Test.Rivet.EngramTest do
     assert {:error, {:eval, nil, diags}} = Engram.process_string(@engram_assigns <> line)
     assert Enum.any?(diags, &(&1.display == "engram warning"))
     assert Enum.any?(diags, &(&1.display == "Line 10: boom"))
+
+    template = """
+    === rivet-engram-v1
+    sections:
+      body: eex-yml
+    === body
+    items: [unclosed
+    """
+    assert {:error, {:eval, reason, []}} = Engram.process_string(template)
+    assert reason != nil
   end
 
   ##############################################################################
@@ -117,5 +127,30 @@ defmodule Test.Rivet.EngramTest do
     assert {:error, "Invalid section type \"bad\" for :bad"} = Engram.parse_string(engram)
 
     assert {:error, "Not a Rivet Engram: empty input"} = Engram.Read.from_string("")
+  end
+
+  ##############################################################################
+  # parsing yaml
+  test "rejects metadata that isn't a map" do
+    doc = """
+    === rivet-engram-v1
+    - first
+    - second
+    === body
+    hello
+    """
+
+    assert {:error, "Invalid Engram: metadata must be a map"} = Engram.Read.from_string(doc)
+  end
+
+  test "propagates malformed YAML errors" do
+    doc = """
+    === rivet-engram-v1
+    sections: [unclosed
+    === body
+    hello
+    """
+
+    assert {:error, %YamlElixir.ParsingError{}} = Engram.Read.from_string(doc)
   end
 end

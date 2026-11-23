@@ -57,7 +57,7 @@ defmodule Rivet.Engram.Read do
     case YamlElixir.read_from_string(meta) do
       {:ok, meta} when is_map(meta) -> {:ok, Transmogrify.transmogrify(meta), body}
       {:ok, _} -> {:error, "Invalid Engram: metadata must be a map"}
-      pass -> pass
+      {:error, _} = error -> error
     end
   end
 
