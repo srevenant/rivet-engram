@@ -21,6 +21,9 @@ defmodule Rivet.Engram do
           | %{section: String.t(), display: String.t(), trace: list() | nil, error: term()}
   @type engram_diagnostics :: list(engram_diagnostic())
 
+  @type failure :: {:parse, term()} | {:eval, term(), engram_diagnostics()}
+  @type result :: {:ok, t()} | {:error, failure()}
+
   @type t :: %__MODULE__{
           sections: %{section_name() => term()},
           deferred: [raw_section()],
@@ -45,20 +48,32 @@ defmodule Rivet.Engram do
   def parse_file(path, opts \\ []),
     do: Engram.Read.from_file(path) |> Engram.Parse.parse(path, opts)
 
-  @spec process_file(Path.t(), keyword()) :: {:ok, t()} | {:error, term()}
+  @spec process_file(Path.t(), keyword()) :: result()
   def process_file(path, opts \\ []) do
-    with {:ok, %Engram{} = t} <- parse_file(path, opts), do: evaluate(t)
+    case parse_file(path, opts) do
+      {:ok, en} -> evaluate(en)
+      {:error, reason} -> {:error, {:parse, reason}}
+    end
   end
 
-  @spec parse_string(String.t(), keyword()) :: {:ok, t()} | {:error, term(), term()}
+  @spec parse_string(String.t(), keyword()) :: {:ok, t()} | {:error, term()}
   def parse_string(string, opts \\ []),
     do: Engram.Read.from_string(string) |> Engram.Parse.parse("nofile", opts)
 
-  @spec process_string(String.t(), keyword()) :: {:ok, t()} | {:error, term()}
+  @spec process_string(String.t(), keyword()) :: result()
   def process_string(string, opts \\ []) do
-    with {:ok, %Engram{} = t} <- parse_string(string, opts), do: evaluate(t)
+    case parse_string(string, opts) do
+      {:ok, en} -> evaluate(en)
+      {:error, reason} -> {:error, {:parse, reason}}
+    end
   end
 
-  @spec evaluate(t()) :: {:ok, t()} | {:error, term()}
-  def evaluate(%Engram{} = t), do: Engram.Evaluate.sections(t)
+  @spec evaluate(t()) :: result()
+  def evaluate(%Engram{} = en) do
+    case Engram.Evaluate.sections(en) do
+      {:ok, result} -> {:ok, result}
+      {:error, reason, diags} -> {:error, {:eval, reason, diags}}
+      {:error, reason} -> {:error, {:eval, reason, []}}
+    end
+  end
 end

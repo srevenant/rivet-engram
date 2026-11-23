@@ -64,18 +64,18 @@ defmodule Test.Rivet.EngramTest do
     green = Map.drop(@engram_big_expect, [:blue, :red])
     assert ^green = en.sections
 
-    assert {:error, "Not a Rivet Engram: " <> _} = Engram.process_file("mix.exs")
+    assert {:error, {:parse, "Not a Rivet Engram: " <> _}} = Engram.process_file("mix.exs")
 
-    assert {:error, "Invalid Engram: missing section index"} =
+    assert {:error, {:parse, "Invalid Engram: missing section index"}} =
              Engram.process_string("=== rivet-engram-v1\n=== blue")
 
-    assert {:error, nil, [%{display: "Line 4: undefined variable \"narf!\""}]} =
+    assert {:error, {:eval, nil, [%{display: "Line 4: undefined variable \"narf!\""}]}} =
              Engram.process_string(@engram_simple <> "<% narf! %>")
   end
 
   ##############################################################################
   defp bad_eval(line, engram \\ @engram_assigns, opts \\ []) do
-    assert {:error, nil, [%{display: display}]} = Engram.process_string(engram <> line, opts)
+    assert {:error, {:eval, nil, [%{display: display}]}} = Engram.process_string(engram <> line, opts)
     display
   end
 
@@ -93,7 +93,7 @@ defmodule Test.Rivet.EngramTest do
              "Invalid import module name 'DoesntExist'"
 
     line = "<% IO.warn(\"engram warning\"); raise \"boom\" %>"
-    assert {:error, nil, diags} = Engram.process_string(@engram_assigns <> line)
+    assert {:error, {:eval, nil, diags}} = Engram.process_string(@engram_assigns <> line)
     assert Enum.any?(diags, &(&1.display == "engram warning"))
     assert Enum.any?(diags, &(&1.display == "Line 10: boom"))
   end
