@@ -75,7 +75,9 @@ defmodule Test.Rivet.EngramTest do
 
   ##############################################################################
   defp bad_eval(line, engram \\ @engram_assigns, opts \\ []) do
-    assert {:error, {:eval, nil, [%{display: display}]}} = Engram.process_string(engram <> line, opts)
+    assert {:error, {:eval, nil, [%{display: display}]}} =
+             Engram.process_string(engram <> line, opts)
+
     display
   end
 
@@ -104,6 +106,7 @@ defmodule Test.Rivet.EngramTest do
     === body
     items: [unclosed
     """
+
     assert {:error, {:eval, reason, []}} = Engram.process_string(template)
     assert reason != nil
   end
@@ -151,6 +154,7 @@ defmodule Test.Rivet.EngramTest do
     hello
     """
 
-    assert {:error, %YamlElixir.ParsingError{}} = Engram.Read.from_string(doc)
+    assert {:error, "Invalid Engram metadata: Unfinished flow collection (line: 1, column: 20)"} =
+             Engram.Read.from_string(doc)
   end
 end

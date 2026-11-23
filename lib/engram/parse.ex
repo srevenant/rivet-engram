@@ -91,8 +91,12 @@ defmodule Rivet.Engram.Parse do
   @spec parse_yaml(iodata(), yaml_method()) :: {:ok, term()} | {:error, term()}
   @doc false
   def parse_yaml(data, method \\ :read_from_string) do
-    with {:ok, data} <- apply(YamlElixir, method, [data]) do
-      {:ok, Transmogrify.transmogrify(data)}
+    case apply(YamlElixir, method, [data]) do
+      {:ok, data} -> {:ok, Transmogrify.transmogrify(data)}
+      {:error, error} -> {:error, "Invalid YAML: #{format_yaml_error(error)}"}
     end
   end
+
+  defp format_yaml_error(%YamlElixir.ParsingError{} = error), do: Exception.message(error)
+  defp format_yaml_error(error), do: inspect(error)
 end
